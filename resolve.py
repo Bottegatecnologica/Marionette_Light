@@ -129,6 +129,7 @@ EXPAND_TX_PAGES = 10
 EXPAND_PAGE_SIZE = 100
 EXPAND_MAX_VERIFY = 80
 CROSS_CHAIN_IDS = (1, 56, 137, 42161, 8453, 10)
+TESTNET_CHAIN_IDS = (11155111, 97, 80002, 421614, 84532, 11155420)
 CROSS_TX_PAGES = 2
 CROSS_MAX_PER_CHAIN = 20
 EXPLORE_RESOLVE_MAX = 40
@@ -142,6 +143,12 @@ CHAIN_NAME = {
     42161: "Arbitrum",
     8453: "Base",
     10: "Optimism",
+    11155111: "Sepolia",
+    97: "BNB Testnet",
+    80002: "Amoy",
+    421614: "Arb Sepolia",
+    84532: "Base Sepolia",
+    11155420: "OP Sepolia",
 }
 
 CONTROL_RELS = frozenset({"DEPLOYED", "ADMIN_OF", "FUNDED", "SIGNER_OF"})
@@ -288,24 +295,34 @@ class Graph:
             existing.evidence = " | ".join(sorted(parts))
 
     def _link_identity(self, hexaddr: str) -> None:
+        """SAME_AS as a nearest-neighbor path: A—B—C (n-1 edges), never a clique/cycle."""
         hexaddr = (hexaddr or "").split("@", 1)[0].lower()
         twins = [(key, node) for key, node in self.nodes.items() if node.addr == hexaddr]
         if len(twins) < 2:
             return
+        twin_keys = {key for key, _ in twins}
+        for key in list(self.edges.keys()):
+            edge = self.edges[key]
+            if edge.rel != "SAME_AS":
+                continue
+            if edge.src in twin_keys and edge.dst in twin_keys:
+                del self.edges[key]
         home = int(self.chainid or 1)
+        # Order by chain proximity (home first, then chain id) → connect consecutive only
         twins.sort(key=lambda item: (0 if int(item[1].chain) == home else 1, int(item[1].chain)))
-        _, hub = twins[0]
-        for _, node in twins[1:]:
-            src_name = CHAIN_NAME.get(int(hub.chain), str(hub.chain))
-            dst_name = CHAIN_NAME.get(int(node.chain), str(node.chain))
+        for i in range(len(twins) - 1):
+            _, a = twins[i]
+            _, b = twins[i + 1]
+            src_name = CHAIN_NAME.get(int(a.chain), str(a.chain))
+            dst_name = CHAIN_NAME.get(int(b.chain), str(b.chain))
             self.add_edge(
                 hexaddr,
                 hexaddr,
                 "SAME_AS",
                 "same",
                 f"same address on {src_name} and {dst_name}",
-                src_chain=int(hub.chain),
-                dst_chain=int(node.chain),
+                src_chain=int(a.chain),
+                dst_chain=int(b.chain),
             )
 
     def warn(self, message: str) -> None:
@@ -925,18 +942,28 @@ def expand_on_chain(
         evidence_hint = candidates[contract]
         is_contract = _has_code(es.eth_code(contract))
         prefix = f"{name}: " if scan_chain != int(graph.chainid or 1) else ""
-        if "create" in evidence_hint:
-            ensure_admin()
-            graph.add_node(contract, kind="Contract", chain=scan_chain)
-            graph.add_edge(
-                admin,
-                contract,
-                "DEPLOYED",
-                "deployer",
-                prefix + evidence_hint,
-                src_chain=admin_chain,
-                dst_chain=scan_chain,
-            )
+        if "create" in evidence_hint and is_contract:
+            creations = es.contract_creation([contract])
+            row = creations.get(contract) or {}
+            creator = normalize_addr(row.get("contractCreator"))
+            if creator == admin:
+                ensure_admin()
+                graph.add_node(contract, kind="Contract", chain=scan_chain)
+                txhash = row.get("txHash") or ""
+                graph.add_edge(
+                    admin,
+                    contract,
+                    "DEPLOYED",
+                    "deployer",
+                    prefix
+                    + (
+                        f"getcontractcreation tx={txhash}"
+                        if txhash
+                        else evidence_hint
+                    ),
+                    src_chain=admin_chain,
+                    dst_chain=scan_chain,
+                )
         if not is_contract:
             continue
         proofs = prove_control(es, admin, contract)
@@ -1030,7 +1057,7 @@ def attach_local_control(
         [("eip1967.impl", EIP1967_IMPL_SLOT), ("zos.impl", ZOS_IMPL_SLOT)],
     )
     if impl:
-        place_actor(graph, es, impl, "Controller", chain)
+        place_actor(graph, es, impl, "Contract", chain)
         graph.add_edge(
             impl,
             addr,
@@ -1045,7 +1072,15 @@ def attach_local_control(
         granted = es.logs(addr, ROLE_GRANTED, DEFAULT_ADMIN_ROLE, from_block)
         revoked = es.logs(addr, ROLE_REVOKED, DEFAULT_ADMIN_ROLE, from_block)
         for account, txhash in sorted(_net_role_admins(granted, revoked).items()):
-            note_hand(account, "Controller", "ADMIN_OF", "DEFAULT_ADMIN", f"RoleGranted tx={txhash}")
+            if not es.has_admin_role(addr, account):
+                continue
+            note_hand(
+                account,
+                "Controller",
+                "ADMIN_OF",
+                "DEFAULT_ADMIN",
+                f"RoleGranted tx={txhash} + hasRole(DEFAULT_ADMIN_ROLE)",
+            )
     except Exception:
         pass
 
@@ -1149,12 +1184,19 @@ def _home_eoa_addrs(graph: Graph, es: Etherscan) -> list[str]:
     return sorted(out)
 
 
+def _cross_chain_ids(*, include_testnets: bool = False) -> tuple[int, ...]:
+    if include_testnets:
+        return tuple(dict.fromkeys([*CROSS_CHAIN_IDS, *TESTNET_CHAIN_IDS]))
+    return CROSS_CHAIN_IDS
+
+
 def scan_other_chains(
     graph: Graph,
     api_key: str,
     on_progress: ProgressFn | None = None,
     *,
     eoas: list[str] | None = None,
+    include_testnets: bool = False,
 ) -> ResolveResult:
     if not api_key or not api_key.strip():
         raise ValueError("Etherscan API key is missing.")
@@ -1164,7 +1206,7 @@ def scan_other_chains(
         eoas = _home_eoa_addrs(graph, es)
     else:
         eoas = [a for a in (normalize_addr(x) or "" for x in eoas) if a and a not in HUBS]
-    other = [cid for cid in CROSS_CHAIN_IDS if int(cid) != home]
+    other = [cid for cid in _cross_chain_ids(include_testnets=include_testnets) if int(cid) != home]
     if not eoas or not other:
         if on_progress:
             on_progress("No EOAs to scan on other chains.", 1, 1)
@@ -1245,6 +1287,8 @@ def explore_other_chains(
     api_key: str,
     on_progress: ProgressFn | None = None,
     focus: str | None = None,
+    *,
+    include_testnets: bool = False,
 ) -> ResolveResult:
     """Discover foreign contracts, resolve them on that chain, expand their puppeteers there."""
     if not api_key or not api_key.strip():
@@ -1260,7 +1304,9 @@ def explore_other_chains(
             scan_list = [focus_n] + [a for a in scan_list if a != focus_n]
     else:
         scan_list = sorted(known_eoas)
-    scan_other_chains(graph, api_key, on_progress, eoas=scan_list)
+    scan_other_chains(
+        graph, api_key, on_progress, eoas=scan_list, include_testnets=include_testnets
+    )
 
     resolved: set[tuple[str, int]] = set()
     expanded: set[tuple[str, int]] = set()
@@ -1308,7 +1354,9 @@ def explore_other_chains(
         if fresh:
             known_eoas.update(fresh)
             tick("New hands · other chains", round_i + 1, EXPLORE_ROUNDS)
-            scan_other_chains(graph, api_key, None, eoas=fresh)
+            scan_other_chains(
+                graph, api_key, None, eoas=fresh, include_testnets=include_testnets
+            )
 
     added = len(graph.edges) - before
     if on_progress:
@@ -1446,7 +1494,7 @@ def resolve(
             ],
         )
         if impl:
-            graph.add_node(impl, kind="Controller")
+            graph.add_node(impl, kind="Contract")
             graph.add_edge(impl, seed, "IMPLEMENTATION_OF", "implementation", impl_ev)
 
         bump(f"Resolving {_short(seed)} AccessControl…")
@@ -1456,13 +1504,15 @@ def resolve(
             revoked = es.logs(seed, ROLE_REVOKED, DEFAULT_ADMIN_ROLE, from_block)
             admins = _net_role_admins(granted, revoked)
             for account, txhash in sorted(admins.items()):
+                if not es.has_admin_role(seed, account):
+                    continue
                 graph.add_node(account, kind="Controller")
                 graph.add_edge(
                     account,
                     seed,
                     "ADMIN_OF",
                     "DEFAULT_ADMIN",
-                    f"RoleGranted tx={txhash}",
+                    f"RoleGranted tx={txhash} + hasRole(DEFAULT_ADMIN_ROLE)",
                 )
         except Exception as exc:  # noqa: BLE001
             graph.warn(f"AccessControl skipped for {seed}: {exc}")
@@ -1519,7 +1569,13 @@ def resolve(
         if funder in HUBS:
             continue
         graph.add_node(funder, kind="Funder")
-        graph.add_edge(funder, addr, "FUNDED", "paymaster", f"txlist first inbound tx={txhash}")
+        graph.add_edge(
+            funder,
+            addr,
+            "FUNDED",
+            "paymaster",
+            f"heuristic · txlist first inbound ETH tx={txhash}",
+        )
 
     tick("Building graph…", total, total)
     return graph_to_result(graph)

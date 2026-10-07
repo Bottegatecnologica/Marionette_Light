@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Truth model · Marionette Light</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="wrap">
+    <p class="tag"><a href="./index.html" style="color:var(--copper)">← Marionette Light</a></p>
+    <h1 style="text-transform:none;letter-spacing:0;font-size:28px;margin:12px 0 20px">Truth model</h1>
+    <section>
+      <h2>Source of truth</h2>
+      <p>Edges come only from the local resolver via Etherscan API v2. The UI never invents relationships.</p>
+    </section>
+    <section>
+      <h2>Verified on-chain</h2>
+      <ul>
+        <li><strong>DEPLOYED</strong> — getcontractcreation; Expand keeps CREATE only if creator matches the hand.</li>
+        <li><strong>ADMIN_OF owner / proxy</strong> — live owner() and EIP-1967 / ZOS admin slots.</li>
+        <li><strong>ADMIN_OF DEFAULT_ADMIN</strong> — RoleGranted/Revoked net <em>and</em> live hasRole.</li>
+        <li><strong>SIGNER_OF</strong> — Safe getOwners() with strict ABI decode.</li>
+        <li><strong>IMPLEMENTATION_OF</strong> — proxy impl slot (node kind Contract, not a hand).</li>
+        <li><strong>SAME_AS</strong> — same address across chains as nearest-neighbor path A—B—C.</li>
+      </ul>
+    </section>
+    <section>
+      <h2>Heuristic</h2>
+      <p><strong>FUNDED</strong> is first inbound ETH — context only, labeled heuristic, not counted in Hands, not Expandable.</p>
+    </section>
+    <section>
+      <h2>False negatives</h2>
+      <p>Rate limits, custom Ownable, Timelock-only admin, or non-Safe multisigs can omit real controllers. Missing edge ≠ proof of no control.</p>
+    </section>
+    <nav class="docs">
+      <a href="./how-it-works.html">How it works</a>
+      <a href="https://github.com/Bottegatecnologica/Marionette_Light/blob/main/docs/truth.md">truth.md on GitHub</a>
+    </nav>
+  </div>
+</body>
+</html>

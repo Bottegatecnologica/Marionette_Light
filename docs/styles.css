@@ -1,0 +1,138 @@
+:root {
+  --bg: #0c0d10;
+  --panel: #12141a;
+  --line: #252833;
+  --ink: #e8edf5;
+  --muted: #8b93a7;
+  --copper: #e08a3c;
+  --signer: #5dcaa0;
+  --sans: "Segoe UI", "IBM Plex Sans", sans-serif;
+  --code: "Cascadia Mono", "Consolas", monospace;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  line-height: 1.5;
+}
+body {
+  background-image: radial-gradient(circle at 1px 1px, #1b1e27 1px, transparent 0);
+  background-size: 18px 18px;
+}
+
+.wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 20px 80px;
+}
+
+.brand {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+.logo {
+  width: 40px;
+  height: 48px;
+  color: var(--copper);
+  flex: 0 0 auto;
+}
+h1 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 650;
+}
+.tag {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.hero {
+  margin: 0 0 28px;
+  font-size: 18px;
+  max-width: 34em;
+}
+.hero strong { color: var(--copper); font-weight: 650; }
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+a.btn {
+  display: inline-block;
+  padding: 10px 16px;
+  border-radius: 3px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 650;
+  border: 1px solid var(--line);
+}
+a.btn.primary {
+  background: var(--copper);
+  border-color: var(--copper);
+  color: #1a1208;
+}
+a.btn.ghost {
+  color: var(--ink);
+  background: transparent;
+}
+
+section {
+  background: rgba(18, 20, 26, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+}
+section h2 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--copper);
+}
+section p, section li {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 14px;
+}
+section ul { margin: 0; padding-left: 1.2em; }
+section code, pre {
+  font-family: var(--code);
+  font-size: 12px;
+  color: var(--ink);
+}
+pre {
+  margin: 10px 0 0;
+  padding: 12px;
+  background: #0a0b0e;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  overflow-x: auto;
+  color: var(--signer);
+}
+nav.docs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 13px;
+}
+nav.docs a { color: var(--copper); }
+
+footer {
+  margin-top: 36px;
+  color: var(--muted);
+  font-size: 12px;
+}
+footer a { color: var(--muted); }

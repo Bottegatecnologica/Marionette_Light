@@ -174,6 +174,7 @@ def scan_chains():
     body = request.get_json(force=True, silent=True) or {}
     api_key = _api_key(body)
     focus = str(body.get("addr") or body.get("focus") or "").strip() or None
+    include_testnets = bool(body.get("includeTestnets") or body.get("include_testnets"))
     events: queue.Queue = queue.Queue()
 
     def worker():
@@ -186,7 +187,13 @@ def scan_chains():
             def on_progress(msg: str, current: int, total: int) -> None:
                 events.put({"type": "progress", "message": msg, "current": current, "total": total})
 
-            result = explore_other_chains(graph, api_key, on_progress=on_progress, focus=focus)
+            result = explore_other_chains(
+                graph,
+                api_key,
+                on_progress=on_progress,
+                focus=focus,
+                include_testnets=include_testnets,
+            )
             payload = _save_result(result)
             events.put({"type": "done", **payload})
         except Exception as exc:  # noqa: BLE001
