@@ -1,21 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Marionette Light</title>
-  <link rel="stylesheet" href="./style.css" />
-  <script src="./config.js"></script>
-  <script src="./vendor/vis-network.min.js"></script>
+  <title>Marionette Light — Tutorial</title>
+  <meta name="description" content="Scarica e avvia Marionette Light in locale. Tutorial completo." />
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <header class="top">
+  <div class="wrap">
     <div class="brand">
-      <svg class="logo" viewBox="0 0 48 56" aria-hidden="true" focusable="false">
+      <svg class="logo" viewBox="0 0 48 56" aria-hidden="true">
         <path d="M8 10h32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
         <path d="M16 6.5v7M32 6.5v7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
         <circle cx="24" cy="4.5" r="1.8" fill="currentColor"/>
-        <path d="M24 6.5v8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.9"/>
+        <path d="M24 6.5v8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
         <path d="M16 13.5c-4.5 4-6 9-5 13M32 13.5c4.5 4 6 9 5 13" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity="0.75"/>
         <circle cx="24" cy="30" r="11" fill="#0a0b0e" stroke="currentColor" stroke-width="1.7"/>
         <path d="M18.5 28.5h2.2M27.3 28.5h2.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -25,94 +24,120 @@
       </svg>
       <div>
         <h1>Marionette Light</h1>
-        <p class="tag">Control — deploy, admin, sign.</p>
+        <p class="tag">Tutorial — download &amp; run</p>
       </div>
     </div>
-    <input id="search" spellcheck="false" placeholder="Find plotted address…" />
-  </header>
 
-  <main>
-    <aside class="panel" id="panel">
-      <div class="panel-body">
-        <div id="apiBanner" class="api-banner hidden"></div>
-        <label>
-          Contract addresses
-          <textarea id="contracts" spellcheck="false" placeholder="One contract address per line"></textarea>
-        </label>
-        <label class="chain">
-          Chain
-          <select id="chainid">
-            <option value="1" selected>Ethereum</option>
-            <option value="56">BNB</option>
-            <option value="137">Polygon</option>
-            <option value="42161">Arbitrum</option>
-            <option value="8453">Base</option>
-            <option value="10">Optimism</option>
-          </select>
-        </label>
-        <label class="toggle-row">
-          <input type="checkbox" id="includeTestnets" />
-          <span>Include testnets</span>
-        </label>
-        <label>
-          Your Etherscan API key
-          <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Stored only in this browser" />
-        </label>
-        <label class="api-base-label">
-          API server
-          <input id="apiBaseInput" spellcheck="false" placeholder="https://….onrender.com" />
-        </label>
-        <div class="panel-actions">
-          <button type="button" id="run" class="primary">Expand control tree</button>
-          <button type="button" id="scanChains" class="ghost" disabled>Look for plotted addresses on other chains</button>
-          <button type="button" id="importJson" class="ghost">Import</button>
-          <button type="button" id="exportJson" class="ghost" disabled>Export</button>
-          <input id="importFile" type="file" accept="application/json,.json" hidden />
-        </div>
-        <div id="status" class="status idle">Paste contracts → Expand control tree.</div>
-        <progress id="bar" max="100" value="0"></progress>
-      </div>
-      <button type="button" class="rail-toggle" id="togglePanel" title="Toggle left panel" aria-label="Toggle left panel">◀</button>
-    </aside>
+    <p class="lead">
+      Marionette Light gira <strong>sul tuo PC</strong>: scarichi il codice, installi le dipendenze, apri il browser.
+      Nessun account cloud. La chiave Etherscan resta nel browser.
+    </p>
 
-    <section class="stage">
-      <div id="graph" class="graph"></div>
-      <div id="empty" class="empty-graph">
-        <strong>Control canvas</strong>
-        <span>1. Paste contracts · 2. Expand control tree · 3. Select a hand</span>
+    <div class="actions">
+      <a class="btn primary" href="https://github.com/Bottegatecnologica/Marionette_Light/archive/refs/heads/main.zip">Download ZIP</a>
+      <a class="btn ghost" href="https://github.com/Bottegatecnologica/Marionette_Light">Apri su GitHub</a>
+    </div>
+
+    <nav class="toc" style="margin-bottom:24px">
+      <a href="#requisiti">Requisiti</a>
+      <a href="#install">Installazione</a>
+      <a href="#chiave">API key</a>
+      <a href="#uso">Primo utilizzo</a>
+      <a href="#ui">Interfaccia</a>
+      <a href="#edge">Cosa significano i link</a>
+      <a href="#problemi">Problemi comuni</a>
+    </nav>
+
+    <section id="requisiti">
+      <h2>1. Requisiti</h2>
+      <ul>
+        <li><strong>Python 3.10+</strong> — da <a href="https://www.python.org/downloads/" style="color:var(--copper)">python.org</a> (su Windows spunta “Add Python to PATH”).</li>
+        <li><strong>Connessione internet</strong> — le query vanno a Etherscan.</li>
+        <li><strong>Chiave API Etherscan</strong> — gratuita su <a href="https://etherscan.io/apis" style="color:var(--copper)">etherscan.io/apis</a> (vale anche per le altre chain via API v2).</li>
+      </ul>
+    </section>
+
+    <section id="install">
+      <h2>2. Installazione</h2>
+      <h3>Opzione A — ZIP</h3>
+      <ol>
+        <li>Scarica lo <a href="https://github.com/Bottegatecnologica/Marionette_Light/archive/refs/heads/main.zip" style="color:var(--copper)">ZIP</a> e scompattalo.</li>
+        <li>Apri un terminale <em>dentro</em> la cartella <code>Marionette_Light-main</code>.</li>
+      </ol>
+      <h3>Opzione B — Git</h3>
+      <pre>git clone https://github.com/Bottegatecnologica/Marionette_Light.git
+cd Marionette_Light</pre>
+      <h3>Dipendenze e avvio</h3>
+      <pre>pip install -r requirements.txt
+python app.py</pre>
+      <p>Si apre il browser su <code>http://127.0.0.1:8766</code>. Lascia il terminale aperto mentre usi l’app.</p>
+      <div class="note">
+        <p>Se la porta è occupata, chiudi un’altra istanza di Marionette oppure termina il processo Python precedente.</p>
       </div>
     </section>
 
-    <aside class="inspect" id="inspect">
-      <button type="button" class="rail-toggle" id="toggleInspect" title="Toggle right panel" aria-label="Toggle right panel">▶</button>
-      <div class="inspect-body">
-        <h2>Selection</h2>
-        <div id="inspector" class="inspector idle">Click a node.</div>
-        <div class="inspect-actions">
-          <button type="button" id="expand" class="ghost" disabled>Expand</button>
-          <button type="button" id="copyAddr" class="ghost" disabled>Copy</button>
-          <a id="openScan" class="ghost linkbtn disabled" href="#" target="_blank" rel="noreferrer">Explorer</a>
-        </div>
-        <div class="minitabs" id="sideTabs" role="tablist">
-          <button type="button" class="minitab on" data-pane="edges" role="tab">Edges</button>
-          <button type="button" class="minitab" data-pane="hands" role="tab">Hands</button>
-        </div>
-        <div id="pane-edges" class="tabpane on">
-          <div id="edgeList" class="edgelist"><p class="muted">Nothing selected.</p></div>
-        </div>
-        <div id="pane-hands" class="tabpane">
-          <div class="hands-filters" id="handsChainFilters"></div>
-          <table>
-            <thead><tr><th>hand</th><th>by chain</th><th></th></tr></thead>
-            <tbody id="handsRows"><tr><td colspan="3" class="empty">—</td></tr></tbody>
-          </table>
-        </div>
-      </div>
-    </aside>
-  </main>
+    <section id="chiave">
+      <h2>3. Chiave Etherscan</h2>
+      <ol>
+        <li>Crea un account su Etherscan e genera una API key.</li>
+        <li>Nell’app, campo <strong>Your Etherscan API key</strong> — la chiave resta solo in questo browser (<code>localStorage</code>).</li>
+        <li>Non mettere la chiave nel codice né su GitHub.</li>
+      </ol>
+      <p>Limiti free: molte richieste di fila possono rallentare lo scan; aspetta e riprova.</p>
+    </section>
 
-  <div id="toast" class="toast" aria-live="polite"></div>
+    <section id="uso">
+      <h2>4. Primo utilizzo (flusso tipico)</h2>
+      <ol>
+        <li><strong>Chain</strong> — scegli la chain del contratto (es. Ethereum).</li>
+        <li><strong>Contract addresses</strong> — incolla uno o più indirizzi di contratti (uno per riga).</li>
+        <li><strong>Expand control tree</strong> — costruisce il grafo: deployer, owner, proxy admin, ruoli, Safe signer, ecc.</li>
+        <li>Clicca un nodo “mano” (Controller / Signer / Safe) → <strong>Expand</strong> per cercare altri contratti controllati da quella mano.</li>
+        <li><strong>Look for plotted addresses on other chains</strong> — cerca le stesse EOA su altre chain. Spunta <em>Include testnets</em> se ti servono Sepolia &amp; co.</li>
+        <li>Tab <strong>Hands</strong> — elenco mani; filtra con i chip della chain.</li>
+        <li><strong>Export</strong> — salva il JSON del grafo; <strong>Import</strong> per riprenderlo dopo.</li>
+      </ol>
+    </section>
 
-  <script src="./app.js"></script>
+    <section id="ui">
+      <h2>5. Interfaccia in breve</h2>
+      <ul>
+        <li><strong>Layout</strong> — ogni chain è una colonna; i contratti seed stanno in basso, le mani sopra (come fili di una marionetta).</li>
+        <li><strong>Pannelli</strong> — frecce ai lati per chiudere sinistra/destra e allargare il canvas.</li>
+        <li><strong>Search</strong> (in alto) — trova un address già plottato.</li>
+        <li><strong>Selection</strong> — Copy, Explorer, Expand; tab Edges / Hands.</li>
+        <li><strong>SAME_AS</strong> (archi blu tratteggiati) — stesso address su un’altra chain.</li>
+        <li>Doppio click su un nodo/edge → Expand.</li>
+      </ul>
+    </section>
+
+    <section id="edge">
+      <h2>6. Cosa significano i link</h2>
+      <ul>
+        <li><strong>DEPLOYED</strong> — lo ha deployato (Etherscan creation).</li>
+        <li><strong>ADMIN_OF</strong> — owner / proxy admin / DEFAULT_ADMIN (verifiche on-chain).</li>
+        <li><strong>SIGNER_OF</strong> — owner di un Safe.</li>
+        <li><strong>IMPLEMENTATION_OF</strong> — implementation del proxy (non è una “mano”).</li>
+        <li><strong>FUNDED</strong> — primo ETH in ingresso: solo contesto, non controllo.</li>
+        <li><strong>SAME_AS</strong> — stesso indirizzo su un’altra chain.</li>
+      </ul>
+    </section>
+
+    <section id="problemi">
+      <h2>7. Problemi comuni</h2>
+      <h3><code>pip</code> non trovato</h3>
+      <p>Reinstalla Python con “Add to PATH”, oppure usa <code>py -m pip install -r requirements.txt</code>.</p>
+      <h3>La pagina non si apre</h3>
+      <p>Controlla che il terminale dica <code>Running on http://127.0.0.1:8766</code> e apri quell’URL a mano.</p>
+      <h3>Nessun edge / poca roba</h3>
+      <p>Chiave API errata, rate limit, o il contratto non espone <code>owner()</code> / Safe / slot proxy standard. Prova Expand sulla mano o un’altra chain.</p>
+      <h3>Firewall / antivirus</h3>
+      <p>Deve poter fare HTTPS verso <code>api.etherscan.io</code>.</p>
+    </section>
+
+    <footer>
+      <a href="https://github.com/Bottegatecnologica/Marionette_Light">github.com/Bottegatecnologica/Marionette_Light</a>
+    </footer>
+  </div>
 </body>
 </html>

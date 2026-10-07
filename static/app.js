@@ -156,19 +156,35 @@ function syncRailLabels() {
   if (left) left.textContent = document.body.classList.contains("panel-collapsed") ? "▶" : "◀";
   if (right) right.textContent = document.body.classList.contains("inspect-collapsed") ? "◀" : "▶";
 }
+let panelResizeTimer = null;
+let resizingNetwork = false;
+
 function resizeNetwork(fit) {
-  if (!network) return;
+  if (!network || resizingNetwork) return;
   const el = $("graph");
   if (!el) return;
   const w = el.clientWidth;
   const h = el.clientHeight;
   if (!w || !h) return;
-  network.setSize(w + "px", h + "px");
-  network.redraw();
-  if (fit) {
-    try {
+  resizingNetwork = true;
+  try {
+    // Keep camera — fit() on panel toggle is what blanked the nodes
+    const scale = network.getScale();
+    const pos = network.getViewPosition();
+    network.setSize(w + "px", h + "px");
+    if (fit) {
       network.fit({ animation: false });
-    } catch (_) {}
+    } else if (pos && scale) {
+      network.moveTo({ position: pos, scale, animation: false });
+    }
+    network.redraw();
+  } catch (_) {
+    try {
+      network.setSize(w + "px", h + "px");
+      network.redraw();
+    } catch (__) {}
+  } finally {
+    resizingNetwork = false;
   }
 }
 
@@ -179,19 +195,21 @@ function watchGraphSize() {
   let t = null;
   graphResizeObs = new ResizeObserver(() => {
     if (t) clearTimeout(t);
-    t = setTimeout(() => resizeNetwork(false), 50);
+    // Debounce past CSS grid transition (~180ms)
+    t = setTimeout(() => resizeNetwork(false), 220);
   });
   graphResizeObs.observe(el);
-  window.addEventListener("resize", () => resizeNetwork(false));
+  window.addEventListener("resize", () => {
+    if (t) clearTimeout(t);
+    t = setTimeout(() => resizeNetwork(false), 220);
+  });
 }
 
 function afterPanelToggle() {
   syncRailLabels();
   savePanelState();
-  requestAnimationFrame(() => {
-    resizeNetwork(true);
-    requestAnimationFrame(() => resizeNetwork(true));
-  });
+  if (panelResizeTimer) clearTimeout(panelResizeTimer);
+  panelResizeTimer = setTimeout(() => resizeNetwork(false), 220);
 }
 function saveKey() {
   localStorage.setItem(KEY_LS, $("apiKey").value.trim());
@@ -720,10 +738,7 @@ function renderGraph(data) {
   } else {
     network.redraw();
   }
-  requestAnimationFrame(() => {
-    resizeNetwork(true);
-    requestAnimationFrame(() => resizeNetwork(true));
-  });
+  requestAnimationFrame(() => resizeNetwork(!!first));
 }
 
 const TWIN_BORDER = "#7dd3fc";

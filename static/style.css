@@ -280,11 +280,6 @@ progress::-webkit-progress-value { background: var(--copper); }
   position: relative;
   overflow: hidden;
 }
-.graph > div,
-.graph canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
 .empty-graph {
   position: absolute;
   inset: 0;

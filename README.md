@@ -1,26 +1,28 @@
 # Marionette Light
 
-Who **deploys / admins / signs** your contracts — not money flow.
+Who **deploys / admins / signs** your contracts — not money flow. Runs **locally** on your machine.
 
-**Use in browser:** [bottegatecnologica.github.io/Marionette_Light](https://bottegatecnologica.github.io/Marionette_Light/)  
-(Needs the API online — one-click [Deploy to Render](https://render.com/deploy?repo=https://github.com/Bottegatecnologica/Marionette_Light), then set that URL in the app if it isn’t already.)
+**Tutorial (IT):** [bottegatecnologica.github.io/Marionette_Light](https://bottegatecnologica.github.io/Marionette_Light/)  
+**Download:** [ZIP](https://github.com/Bottegatecnologica/Marionette_Light/archive/refs/heads/main.zip) · [GitHub](https://github.com/Bottegatecnologica/Marionette_Light)
 
-## Local
+## Quick start
 
 ```bash
+git clone https://github.com/Bottegatecnologica/Marionette_Light.git
+cd Marionette_Light
 pip install -r requirements.txt
 python app.py
 ```
 
-→ http://127.0.0.1:8766 — paste contracts + your Etherscan key.
+Open http://127.0.0.1:8766 — paste contracts + your [Etherscan API key](https://etherscan.io/apis).
 
-## Edges (short)
+## Edges
 
 | Edge | Meaning |
 |------|---------|
-| DEPLOYED / ADMIN_OF / SIGNER_OF | Live chain / Etherscan proofs |
-| IMPLEMENTATION_OF | Proxy implementation (not a “hand”) |
-| FUNDED | First ETH in — heuristic only |
+| DEPLOYED / ADMIN_OF / SIGNER_OF | On-chain / Etherscan proofs |
+| IMPLEMENTATION_OF | Proxy implementation |
+| FUNDED | First ETH in (heuristic) |
 | SAME_AS | Same address on another chain |
 
 ## Test
