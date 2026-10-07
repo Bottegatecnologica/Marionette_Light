@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Marionette Light</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/vendor/vis-network.min.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <div>
+        <h1>Marionette Light</h1>
+        <p class="tag">Control trace — deploy, admin, sign.</p>
+      </div>
+    </div>
+    <input id="search" spellcheck="false" placeholder="Find address…" />
+    <label class="chain">
+      Chain
+      <select id="chainid">
+        <option value="1" selected>Ethereum</option>
+        <option value="56">BNB</option>
+        <option value="137">Polygon</option>
+        <option value="42161">Arbitrum</option>
+        <option value="8453">Base</option>
+        <option value="10">Optimism</option>
+      </select>
+    </label>
+    <button type="button" id="fit" class="ghost">Fit</button>
+    <button type="button" id="exportJson" class="ghost" disabled>Export</button>
+    <button type="button" id="run" class="primary">Trace</button>
+  </header>
+
+  <main>
+    <aside class="panel">
+      <label>
+        Seeds
+        <textarea id="seeds" spellcheck="false" placeholder="One contract address per line"></textarea>
+      </label>
+      <label>
+        Your Etherscan API key
+        <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Stored only in this browser" />
+      </label>
+      <div id="status" class="status idle">Paste seeds → Trace → Expand a hand.</div>
+      <progress id="bar" max="100" value="0"></progress>
+    </aside>
+
+    <section class="stage">
+      <div id="graph" class="graph"></div>
+      <div id="empty" class="empty-graph">
+        <strong>Control canvas</strong>
+        <span>1. Paste seeds · 2. Trace · 3. Expand or Other chains on a hand</span>
+      </div>
+    </section>
+
+    <aside class="inspect" id="inspect">
+      <h2>Selection</h2>
+      <div id="inspector" class="inspector idle">Click a node.</div>
+      <div class="inspect-actions">
+        <button type="button" id="expand" class="primary" disabled>Expand</button>
+        <button type="button" id="scanChains" class="ghost" disabled>Other chains</button>
+        <button type="button" id="copyAddr" class="ghost" disabled>Copy</button>
+        <a id="openScan" class="ghost linkbtn" href="#" target="_blank" rel="noreferrer">Explorer</a>
+      </div>
+      <h3>Edges</h3>
+      <div id="edgeList" class="edgelist"><p class="muted">Nothing selected.</p></div>
+      <h3>Hands</h3>
+      <table>
+        <thead><tr><th>hand</th><th>n</th><th></th></tr></thead>
+        <tbody id="handsRows"><tr><td colspan="3" class="empty">—</td></tr></tbody>
+      </table>
+    </aside>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

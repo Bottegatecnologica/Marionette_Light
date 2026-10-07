@@ -1,0 +1,7 @@
+# Public Ethereum examples — replace with the addresses you already know.
+# Ownable-style token (USDT)
+0xdac17f958d2ee523a2206206994597c13d831ec7
+# ZeppelinOS proxy (USDC)
+0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48
+# EIP-1967 proxy (Aave V3 Pool)
+0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2
