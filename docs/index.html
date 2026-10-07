@@ -4,11 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Marionette Light</title>
-  <meta name="description" content="Control graph for EVM contracts — deploy, admin, sign. Not money flow." />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./style.css" />
+  <script src="./config.js"></script>
+  <script src="./vendor/vis-network.min.js"></script>
 </head>
 <body>
-  <div class="wrap">
+  <header class="top">
     <div class="brand">
       <svg class="logo" viewBox="0 0 48 56" aria-hidden="true" focusable="false">
         <path d="M8 10h32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
@@ -27,51 +28,91 @@
         <p class="tag">Control — deploy, admin, sign.</p>
       </div>
     </div>
+    <input id="search" spellcheck="false" placeholder="Find plotted address…" />
+  </header>
 
-    <p class="hero">
-      Trace <strong>who pulls the strings</strong> on EVM infrastructure:
-      deployers, owners, proxy admins, AccessControl, and Safe signers —
-      across chains. Not a money-flow explorer.
-    </p>
+  <main>
+    <aside class="panel" id="panel">
+      <div class="panel-body">
+        <div id="apiBanner" class="api-banner hidden"></div>
+        <label>
+          Contract addresses
+          <textarea id="contracts" spellcheck="false" placeholder="One contract address per line"></textarea>
+        </label>
+        <label class="chain">
+          Chain
+          <select id="chainid">
+            <option value="1" selected>Ethereum</option>
+            <option value="56">BNB</option>
+            <option value="137">Polygon</option>
+            <option value="42161">Arbitrum</option>
+            <option value="8453">Base</option>
+            <option value="10">Optimism</option>
+          </select>
+        </label>
+        <label class="toggle-row">
+          <input type="checkbox" id="includeTestnets" />
+          <span>Include testnets</span>
+        </label>
+        <label>
+          Your Etherscan API key
+          <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Stored only in this browser" />
+        </label>
+        <label class="api-base-label">
+          API server
+          <input id="apiBaseInput" spellcheck="false" placeholder="https://….onrender.com" />
+        </label>
+        <div class="panel-actions">
+          <button type="button" id="run" class="primary">Expand control tree</button>
+          <button type="button" id="scanChains" class="ghost" disabled>Look for plotted addresses on other chains</button>
+          <button type="button" id="importJson" class="ghost">Import</button>
+          <button type="button" id="exportJson" class="ghost" disabled>Export</button>
+          <input id="importFile" type="file" accept="application/json,.json" hidden />
+        </div>
+        <div id="status" class="status idle">Paste contracts → Expand control tree.</div>
+        <progress id="bar" max="100" value="0"></progress>
+      </div>
+      <button type="button" class="rail-toggle" id="togglePanel" title="Toggle left panel" aria-label="Toggle left panel">◀</button>
+    </aside>
 
-    <div class="actions">
-      <a class="btn primary" href="https://github.com/Bottegatecnologica/Marionette_Light#quick-start">Run locally</a>
-      <a class="btn ghost" href="https://github.com/Bottegatecnologica/Marionette_Light">GitHub</a>
-      <a class="btn ghost" href="./truth.html">Truth model</a>
-      <a class="btn ghost" href="./how-it-works.html">How it works</a>
-    </div>
-
-    <section>
-      <h2>Why Light</h2>
-      <ul>
-        <li>No Neo4j — paste contracts, use your Etherscan key, graph stays in the browser.</li>
-        <li>Marionette layout: seeds at the bottom, hands above, chains side by side.</li>
-        <li>Edges are live <code>eth_call</code> / Etherscan; <code>FUNDED</code> is marked heuristic.</li>
-      </ul>
+    <section class="stage">
+      <div id="graph" class="graph"></div>
+      <div id="empty" class="empty-graph">
+        <strong>Control canvas</strong>
+        <span>1. Paste contracts · 2. Expand control tree · 3. Select a hand</span>
+      </div>
     </section>
 
-    <section>
-      <h2>Quick start</h2>
-      <pre>git clone https://github.com/Bottegatecnologica/Marionette_Light.git
-cd Marionette_Light
-pip install -r requirements.txt
-python app.py
-# → http://127.0.0.1:8766</pre>
-    </section>
+    <aside class="inspect" id="inspect">
+      <button type="button" class="rail-toggle" id="toggleInspect" title="Toggle right panel" aria-label="Toggle right panel">▶</button>
+      <div class="inspect-body">
+        <h2>Selection</h2>
+        <div id="inspector" class="inspector idle">Click a node.</div>
+        <div class="inspect-actions">
+          <button type="button" id="expand" class="ghost" disabled>Expand</button>
+          <button type="button" id="copyAddr" class="ghost" disabled>Copy</button>
+          <a id="openScan" class="ghost linkbtn disabled" href="#" target="_blank" rel="noreferrer">Explorer</a>
+        </div>
+        <div class="minitabs" id="sideTabs" role="tablist">
+          <button type="button" class="minitab on" data-pane="edges" role="tab">Edges</button>
+          <button type="button" class="minitab" data-pane="hands" role="tab">Hands</button>
+        </div>
+        <div id="pane-edges" class="tabpane on">
+          <div id="edgeList" class="edgelist"><p class="muted">Nothing selected.</p></div>
+        </div>
+        <div id="pane-hands" class="tabpane">
+          <div class="hands-filters" id="handsChainFilters"></div>
+          <table>
+            <thead><tr><th>hand</th><th>by chain</th><th></th></tr></thead>
+            <tbody id="handsRows"><tr><td colspan="3" class="empty">—</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </aside>
+  </main>
 
-    <section>
-      <h2>Docs</h2>
-      <nav class="docs">
-        <a href="./how-it-works.html">How it works</a>
-        <a href="./truth.html">Truth model</a>
-        <a href="https://github.com/Bottegatecnologica/Marionette_Light/blob/main/README.md">Full README</a>
-      </nav>
-      <p style="margin-top:12px">This GitHub Pages site is documentation only. The interactive app runs on your machine (Flask API cannot run here).</p>
-    </section>
+  <div id="toast" class="toast" aria-live="polite"></div>
 
-    <footer>
-      <a href="https://github.com/Bottegatecnologica/Marionette_Light">Bottegatecnologica / Marionette_Light</a>
-    </footer>
-  </div>
+  <script src="./app.js"></script>
 </body>
 </html>

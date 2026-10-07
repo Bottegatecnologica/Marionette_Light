@@ -9,7 +9,10 @@ import time
 import webbrowser
 from pathlib import Path
 
+import os
+
 from flask import Flask, Response, jsonify, request, send_from_directory
+from flask_cors import CORS
 
 from resolve import (
     expand_controller,
@@ -26,6 +29,20 @@ STATIC = ROOT / "static"
 PORT = 8766
 
 app = Flask(__name__, static_folder=str(STATIC), static_url_path="/static")
+CORS(
+    app,
+    resources={
+        r"/api/*": {
+            "origins": [
+                "https://bottegatecnologica.github.io",
+                "http://127.0.0.1:8766",
+                "http://localhost:8766",
+            ],
+            "supports_credentials": False,
+            "expose_headers": ["Content-Type"],
+        }
+    },
+)
 _run_lock = threading.Lock()
 _last_graph = None
 _last_chainid = 1
@@ -242,13 +259,20 @@ def _wait_ready(timeout: float = 12.0) -> bool:
 
 
 def main() -> None:
+    port = int(os.environ.get("PORT") or PORT)
+    host = os.environ.get("HOST", "127.0.0.1")
+    # Hosted (Render etc.): bind all interfaces, no desktop window
+    if os.environ.get("PORT") or os.environ.get("MARIONETTE_HOSTED") == "1":
+        app.run(host="0.0.0.0", port=port, threaded=True, use_reloader=False)
+        return
+
     def serve() -> None:
-        app.run(host="127.0.0.1", port=PORT, threaded=True, use_reloader=False)
+        app.run(host=host, port=port, threaded=True, use_reloader=False)
 
     threading.Thread(target=serve, daemon=True).start()
     if not _wait_ready():
         raise SystemExit("Could not start Marionette Light.")
-    url = f"http://127.0.0.1:{PORT}/"
+    url = f"http://127.0.0.1:{port}/"
     try:
         import webview
 

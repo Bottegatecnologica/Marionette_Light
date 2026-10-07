@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: marionette-light
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -b 0.0.0.0:$PORT --timeout 180 --workers 1 app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: MARIONETTE_HOSTED
+        value: "1"
