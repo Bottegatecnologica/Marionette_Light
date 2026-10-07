@@ -2,7 +2,7 @@
 
 Who **deploys / admins / signs** your contracts — not money flow. Runs **locally** on your machine.
 
-**Tutorial (IT):** [bottegatecnologica.github.io/Marionette_Light](https://bottegatecnologica.github.io/Marionette_Light/)  
+**Tutorial:** [bottegatecnologica.github.io/Marionette_Light](https://bottegatecnologica.github.io/Marionette_Light/)  
 **Download:** [ZIP](https://github.com/Bottegatecnologica/Marionette_Light/archive/refs/heads/main.zip) · [GitHub](https://github.com/Bottegatecnologica/Marionette_Light)
 
 ## Quick start
